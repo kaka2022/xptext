@@ -4,59 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>小瓶子 - 欲望清单</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("k0Jq1yQ1_Y1PQF_lu"); // 你的 Public Key
+        })();
+    </script>
     <style>
         :root { --primary: #ff0055; --bg: #0a0a0a; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        
         .header { margin: 25px 0; text-align: center; padding: 0 20px; }
-        .header h1 { font-size: 20px; color: var(--primary); text-shadow: 0 0 10px rgba(255,0,85,0.3); }
+        .header h1 { font-size: 20px; color: var(--primary); text-shadow: 0 0 10px rgba(255,0,85,0.3); margin-bottom: 5px; }
+        .view-banner { background: #ff758f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; display: none; }
+
         #bottle-grid { 
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; 
             padding: 20px; width: 88%; max-width: 450px; 
             background: #161616; border-radius: 25px; border: 1px solid #222;
         }
-        .bottle-item { display: flex; flex-direction: column; align-items: center; }
+        
+        .bottle-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .bottle-svg { width: 55px; height: 80px; }
-        .bottle-fill { transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1); fill: var(--primary); filter: drop-shadow(0 0 3px var(--primary)); }
-        .label { margin-top: 10px; font-size: 12px; font-weight: 500; color: #aaa; text-align: center; min-height: 34px; width: 90%; }
+        .bottle-fill { transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1); fill: var(--primary); filter: drop-shadow(0 0 5px var(--primary)); }
+        .label { margin-top: 10px; font-size: 12px; font-weight: 500; color: #aaa; text-align: center; min-height: 34px; width: 90%; line-height: 1.3; }
+
         .btn-group { margin: 30px 0; display: flex; flex-direction: column; gap: 12px; width: 80%; max-width: 280px; }
-        .btn { padding: 16px; border-radius: 35px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn { padding: 16px; border-radius: 35px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; }
         .btn-main { background: var(--primary); color: white; box-shadow: 0 5px 20px rgba(255,0,85,0.4); }
+        .btn-main:active { transform: scale(0.95); opacity: 0.8; }
         .btn-back { background: #222; color: #777; font-size: 14px; }
+        
+        #status-msg { font-size: 11px; color: #444; margin-top: 8px; }
     </style>
 </head>
 <body>
 
     <div class="header">
+        <div id="view-tag" class="view-banner">正在查看对方的清单</div>
         <h1 id="title">分类载入中...</h1>
     </div>
 
     <div id="bottle-grid"></div>
 
     <div class="btn-group">
-        <button class="btn btn-main" id="main-btn" onclick="handleShare()">保存结果并复制链接</button>
+        <button class="btn btn-main" id="main-btn" onclick="handleShare()">保存结果并发送</button>
         <button class="btn btn-back" onclick="location.href='index.html'">返回超市主页</button>
+        <div id="status-msg">点击瓶子加水（5次填满）</div>
     </div>
 
     <script>
         const DATA = {
-            c1: { title: "1. 前戏/口部/亲吻", items: ["舌吻", "种草莓", "被舔耳朵", "被舔乳头", "指交/帮撸", "被口", "帮对方口", "口交", "深喉", "口爆", "吞精", "颜射", "舔阴/舔肛", "舔足/舔脚"] },
-            c2: { title: "2. 体位/性交相关", items: ["女上位", "传教士(正面)", "后入式", "肛交", "乳交", "69式", "无套", "内射/中出", "潮吹", "正常性爱"] },
-            c3: { title: "3. 高潮/控制/激烈", items: ["强迫/强制高潮", "边缘控制", "高潮禁止", "潮吹失禁", "性窒息", "自慰展示", "跳蛋/器具", "折磨/虐待"] },
-            c4: { title: "4. 羞辱/言语/心理", items: ["言语/语言羞辱", "人格侮辱", "下流话", "羞辱耳光", "思维/精神控制", "催眠", "胁迫", "视奸/痴汉"] },
-            c5: { title: "5. 捆绑/束缚/道具", items: ["绳缚/吊缚", "贞操带/项圈", "口球/眼罩", "胶衣", "乳夹/阴夹", "肛塞", "穿刺(乳/阴)", "滴蜡/电击", "针刺皮肤", "鞭打/SP", "踩踏/践踏", "乳头虐待"] },
-            c6: { title: "6. 宠物/动物化/饲养", items: ["爬行", "长期/短期圈养", "K9犬化/犬奴", "遛狗式", "骑乘", "穿戴兽尾", "喂食"] },
-            c7: { title: "7. 角色扮演/场景", items: ["角色扮演", "制服诱惑", "情趣内衣", "人偶装扮", "家具/艺术品化", "正常性爱(对比)"] },
-            c8: { title: "8. 多人/群交/组合", items: ["3P/多P/群交", "两女一男", "两男一女", "多奴调教", "夫妻主调教", "多主调教", "公调"] },
-            c9: { title: "9. 暴露/野外/公共", items: ["露出/暴露", "野外", "公共场合玩弄", "公开场合失禁", "露阴", "野外流放/奴役", "暴露性交", "电话暴露"] },
-            c10: { title: "10. 极端/强制/幻想", items: ["强奸/轮奸", "乱伦", "性瘾", "媚药", "囚禁/牢笼", "灌肠", "圣水/黄金", "吃经血", "剃毛", "双阳具插入", "感官剥夺", "长时间口交", "舔精/舔阴"] },
-            c11: { title: "11. 场所/场景大全", items: ["浴室/厨房", "卧室/客厅", "车里", "酒店/办公室", "教室/厕所", "沙发/餐桌", "天台/野外", "游泳池/瑜伽垫", "落地窗前", "私人影院", "摩天轮/秋千", "楼道/网吧/画室"] },
-            c12: { title: "12. 小众/其他玩法", items: ["食物玩法/插入", "巧克力/奶油", "机器人/仿生人", "睡眠玩法", "镜拷", "网络控制", "公交车痴汉", "作为烟灰缸/奴仆"] }
+            c1: { title: "1. 前戏 / 亲吻 / 口部相关", items: ["舌吻", "种草莓(吻痕)", "被舔耳朵", "被舔乳头", "指交 / 帮撸", "被口", "帮对方口", "口交", "深喉", "口爆", "吞精", "颜射", "舔阴 / 舔肛", "舔足 / 舔脚"] },
+            c2: { title: "2. 体位 / 性交相关", items: ["女上位", "传教士(正面)", "后入 / 后入式", "肛交", "乳交", "69式", "无套", "内射 / 中出", "潮吹", "正常性爱"] },
+            c3: { title: "3. 高潮 / 控制 / 激烈玩法", items: ["强迫 / 强制高潮", "边缘控制", "强制", "高潮禁止", "潮吹失禁", "失禁", "性窒息 / 窒息", "自慰展示", "跳蛋", "器具折磨"] },
+            c4: { title: "4. 羞辱 / 言语 / 心理相关", items: ["言语羞辱", "人格侮辱", "下流话", "耳光羞辱", "语言侮辱", "思维 / 精神控制", "催眠", "胁迫", "视奸", "痴汉幻想"] },
+            c5: { title: "5. 捆绑 / 束缚 / 道具相关", items: ["绳缚 / 捆绑", "吊缚 / 拘束", "贞操带 / 项圈", "口球 / 眼罩", "胶衣", "乳夹 / 阴夹", "肛塞", "穿刺(乳/阴)", "滴蜡 / 电击", "针刺皮肤", "鞭打 / SP", "踩踏 / 践踏", "乳头虐待"] },
+            c6: { title: "6. 宠物 / 动物化 / 饲养相关", items: ["爬行", "长期 / 短期圈养", "K9犬化 / 犬奴", "遛玩(遛狗式)", "骑乘", "穿戴兽尾", "喂食"] },
+            c7: { title: "7. 角色扮演 / 制服 / 场景", items: ["角色扮演", "制服诱惑", "情趣内衣", "人偶装扮", "作为家具 / 艺术品", "正常性爱(对比)"] },
+            c8: { title: "8. 多人 / 群交 / 组合相关", items: ["3P / 群P / 多P", "群交", "两女一男", "两男一女", "多奴调教", "夫妻主调教", "多主调教", "公调"] },
+            c9: { title: "9. 暴露 / 野外 / 公共相关", items: ["暴露 / 露出", "野外", "公共场合玩弄", "公开场合失禁", "露阴", "野外奴役 / 流放", "暴露性交", "电话暴露"] },
+            c10: { title: "10. 极端 / 强制 / 幻想类", items: ["强奸 / 轮奸", "乱伦幻想", "性瘾", "媚药", "囚禁 / 牢笼", "灌肠", "圣水 / 黄金", "吃经血", "剃毛", "双阳具插入", "感官剥夺", "长时间口交", "舔精 / 舔阴"] },
+            c11: { title: "11. 场所 / 场景大全", items: ["浴室 / 厨房", "卧室 / 客厅", "车里 / 酒店", "办公室 / 教室", "厕所 / 沙发", "餐桌 / 天台", "野外 / 游泳池", "瑜伽垫", "落地窗前", "私人影院", "游轮 / 摩天轮", "秋千 / 楼道", "网吧 / 画室 / 舞蹈室"] },
+            c12: { title: "12. 小众 / 其他特殊玩法", items: ["食物玩法", "巧克力 / 奶油", "机器人 / 仿生人", "睡眠玩法", "镜拷", "网络控制", "公交车痴汉", "作为烟灰缸 / 奴仆"] }
         };
 
         const params = new URLSearchParams(window.location.search);
         const catKey = params.get('cat') || 'c1';
-        const config = DATA[catKey];
+        const config = DATA[catKey] || DATA['c1'];
         let state = new Array(config.items.length).fill(0);
+        let isView = false;
 
         function init() {
             document.getElementById('title').innerText = config.title;
@@ -64,8 +81,11 @@
             if (res) {
                 try {
                     state = JSON.parse(decodeURIComponent(escape(atob(res))));
-                    document.getElementById('main-btn').innerText = "我也要填这份清单";
-                } catch(e) {}
+                    isView = true;
+                    document.getElementById('view-tag').style.display = 'inline-block';
+                    document.getElementById('main-btn').innerText = "我也要玩一份";
+                    document.getElementById('status-msg').innerText = "正在查看好友分享的结果";
+                } catch(e) { console.error("解析失败"); }
             }
             render();
         }
@@ -78,7 +98,7 @@
                         <defs><clipPath id="cl${i}"><path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" /></clipPath></defs>
                         <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" fill="none" stroke="#444" stroke-width="4"/>
                         <rect class="bottle-fill" x="0" y="${145 - (state[i] * 25)}" width="100" height="${state[i] * 25}" clip-path="url(#cl${i})" />
-                        <rect x="32" y="10" width="36" height="12" rx="3" fill="#333"/>
+                        <rect x="35" y="10" width="30" height="10" rx="2" fill="#333"/>
                     </svg>
                     <div class="label">${item}</div>
                 </div>
@@ -86,22 +106,50 @@
         }
 
         function tap(i) {
-            if (params.get('res')) return;
+            if (isView) return;
             state[i] = (state[i] + 1) % 6;
             render();
         }
 
-        function handleShare() {
-            if (params.get('res')) { location.href = `game.html?cat=${catKey}`; return; }
+        async function handleShare() {
+            if (isView) { 
+                location.href = `game.html?cat=${catKey}`; 
+                return; 
+            }
+
             const resStr = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
             const url = `${window.location.origin}${window.location.pathname}?cat=${catKey}&res=${resStr}`;
             
+            const btn = document.getElementById('main-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "同步备份中...";
+
+            // EmailJS 发送逻辑
+            emailjs.send("service_p5t1bos", "template_ll4kgrl", {
+                category: config.title,
+                share_url: url
+            }).then(() => {
+                console.log("Mail sent");
+            }).catch((err) => {
+                console.log("Mail failed", err);
+            }).finally(() => {
+                btn.innerText = originalText;
+                copyLink(url);
+            });
+        }
+
+        function copyLink(url) {
             const el = document.createElement('textarea');
             el.value = url;
-            document.body.appendChild(el); el.select();
-            document.execCommand('copy');
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                alert('✅ 结果已生成并自动备份！\n\n专属链接已复制，快去发给 Ta 吧。');
+            } catch (err) {
+                alert('链接生成成功：\n' + url);
+            }
             document.body.removeChild(el);
-            alert('✅ 结果已生成！链接已复制到剪贴板。');
         }
 
         init();
