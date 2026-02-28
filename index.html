@@ -3,187 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XP小瓶子 - 快乐源泉生成器</title>
+    <title>XP小瓶子 - 精致版</title>
     <script src="https://smtpjs.com/v3/smtp.js"></script>
     <style>
-        :root { --primary: #ff85a2; --bg: #fff5f7; }
-        body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+        :root { --main-color: #ff85a2; --bg-soft: #fff9fa; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-soft); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        .header { margin: 25px 0; text-align: center; width: 90%; }
-        .header h1 { color: #d63384; font-size: 26px; margin: 0; letter-spacing: 1px; }
-        .header p { color: #888; font-size: 14px; margin-top: 8px; }
+        .header { margin: 25px 0; text-align: center; }
+        .header h1 { color: #d63384; font-size: 24px; margin: 0; }
+        .header p { color: #999; font-size: 13px; margin-top: 5px; }
 
-        /* 瓶子展示区 */
+        /* 瓶子布局 */
         #bottle-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 15px; 
-            padding: 20px; 
-            max-width: 450px; 
-            width: 85%; 
-            background: white; 
-            border-radius: 24px; 
-            box-shadow: 0 12px 40px rgba(214, 51, 132, 0.08); 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; 
+            padding: 20px; background: white; border-radius: 25px; 
+            box-shadow: 0 10px 30px rgba(214, 51, 132, 0.1); width: 85%; max-width: 400px;
         }
 
-        .bottle-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative; }
+        .item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s; }
+        .item:active { transform: scale(0.95); }
         
-        /* 瓶子SVG样式 */
-        .bottle-svg { width: 75px; height: 105px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
-        .bottle-fill { transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1); fill: var(--primary); }
-        .bottle-outline { fill: none; stroke: #333; stroke-width: 3.5; stroke-linejoin: round; }
-        
-        .bottle-label { 
-            margin-top: 10px; font-size: 14px; font-weight: 600; color: #444; 
-            border: none; text-align: center; width: 100%; background: transparent; pointer-events: none; 
-        }
+        .bottle-svg { width: 75px; height: 100px; }
+        .fill-liquid { transition: height 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67); fill: var(--main-color); }
+        .label-text { margin-top: 8px; font-size: 14px; font-weight: bold; color: #444; }
 
-        /* 底部操作区 */
-        .actions { margin: 35px 0; display: flex; flex-direction: column; gap: 12px; width: 80%; max-width: 300px; }
-        .btn { 
-            padding: 16px; border-radius: 35px; border: none; font-size: 16px; font-weight: bold; 
-            cursor: pointer; transition: all 0.2s ease; text-align: center; text-decoration: none; 
-        }
-        .btn-share { background: #07c160; color: white; box-shadow: 0 6px 20px rgba(7,193,96,0.25); }
-        .btn-share:active { transform: scale(0.96); background: #06ad56; }
-        .btn-reset { background: #f0f0f0; color: #777; font-size: 14px; }
+        /* 按钮与状态 */
+        .btn-group { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; width: 80%; max-width: 300px; }
+        .btn { padding: 16px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-main { background: #07c160; color: white; box-shadow: 0 4px 12px rgba(7,193,96,0.3); }
+        .btn-sub { background: #eee; color: #777; font-size: 14px; }
         
-        /* 状态提示 */
-        #status-msg { font-size: 12px; color: #bbb; margin-top: 10px; text-align: center; min-height: 1.2em; }
-        
-        /* 查看模式标记 */
-        .view-mode-banner { 
-            position: sticky; top: 0; width: 100%; background: #ff85a2; color: white; 
-            padding: 8px; text-align: center; font-size: 13px; font-weight: bold; display: none; z-index: 100;
-        }
+        #status-bar { margin-top: 15px; font-size: 11px; color: #bbb; text-align: center; padding: 0 20px; }
+        .view-mode-badge { background: #ff85a2; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
 
-    <div id="view-banner" class="view-mode-banner">✨ 正在查看好友分享的结果</div>
-
     <div class="header">
-        <h1 id="main-title">XP兴趣小瓶子</h1>
-        <p id="sub-title">点击瓶子注入程度 (共5级)，分享看结果</p>
+        <div id="view-badge" class="view-mode-badge">正在查看好友的结果</div>
+        <h1 id="title">我的兴趣小瓶子</h1>
+        <p id="hint">点一下瓶子加水，满5次后重置</p>
     </div>
 
-    <div id="bottle-grid">
-        </div>
+    <div id="bottle-grid"></div>
 
-    <div class="actions" id="action-bar">
-        <button class="btn btn-share" id="share-btn" onclick="handleShare()">生成结果并同步后台</button>
-        <button class="btn btn-reset" onclick="handleReset()">清空全部</button>
-        <div id="status-msg"></div>
+    <div class="btn-group">
+        <button class="btn btn-main" id="action-btn" onclick="handleMainAction()">生成结果并发送好友</button>
+        <button class="btn btn-sub" onclick="resetApp()">清空重置</button>
     </div>
+
+    <div id="status-bar">就绪</div>
 
     <script>
-        // 配置信息 (已更新你的最新授权码)
-        const config = {
+        // --- 核心配置（已根据你提供的信息更新） ---
+        const CONFIG = {
             items: ["颜值", "声音", "手指", "锁骨", "腹肌", "温柔", "衣品", "性格", "幽默"],
-            proxyEmail: "pinkliuzhihao@foxmail.com",
-            authCode: "aolwrlypahmqfhjg", // <--- 新授权码已更新
-            targetEmail: "1425306558@qq.com",
+            smtpHost: "smtp.qq.com",
+            username: "1425306558@qq.com", // 发件箱
+            password: "aolwrlypahmqfhjg", // 授权码
+            target: "1425306558@qq.com",   // 收件箱
             baseUrl: window.location.origin + window.location.pathname
         };
 
-        let state = new Array(config.items.length).fill(0);
+        let levels = new Array(CONFIG.items.length).fill(0);
         let isViewMode = false;
 
-        // 初始化加载
+        // 初始化：检查 URL 是否带结果
         function init() {
-            const params = new URLSearchParams(window.location.search);
-            const resData = params.get('res');
-            
-            if (resData) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const res = urlParams.get('res');
+            if (res) {
                 try {
-                    // 解码 Base64 结果
-                    state = JSON.parse(decodeURIComponent(escape(atob(resData))));
+                    levels = JSON.parse(decodeURIComponent(escape(atob(res))));
                     isViewMode = true;
-                    document.getElementById('view-banner').style.display = 'block';
-                    document.getElementById('main-title').innerText = "好友的兴趣结果";
-                    document.getElementById('sub-title').innerText = "TA对这些项目的入迷程度如下";
-                    document.getElementById('share-btn').innerText = "我也要玩";
-                    document.getElementById('share-btn').onclick = () => { window.location.href = config.baseUrl; };
-                } catch(e) {
-                    console.error("数据解析失败");
-                }
+                    document.getElementById('view-badge').style.display = 'inline-block';
+                    document.getElementById('title').innerText = "好友的小瓶子";
+                    document.getElementById('hint').innerText = "这是 TA 目前的入迷程度";
+                    document.getElementById('action-btn').innerText = "我也要玩";
+                    document.getElementById('action-btn').style.background = "#ff85a2";
+                } catch(e) { console.warn("数据解析失败"); }
             }
             render();
         }
 
-        // 绘图
         function render() {
-            const grid = document.getElementById('bottle-grid');
-            grid.innerHTML = config.items.map((item, index) => {
-                // 计算填充高度：0-5级，每级20%，最大100% (即100px)
-                const fillHeight = state[index] * 20; 
-                return `
-                <div class="bottle-item" onclick="updateLevel(${index})">
+            const container = document.getElementById('bottle-grid');
+            container.innerHTML = CONFIG.items.map((name, i) => `
+                <div class="item" onclick="increment(${i})">
                     <svg class="bottle-svg" viewBox="0 0 100 150">
-                        <defs>
-                            <clipPath id="bottle-clip-${index}">
-                                <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" />
-                            </clipPath>
-                        </defs>
-                        <path class="bottle-outline" d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" stroke="#eee" />
-                        <rect class="bottle-fill" x="0" y="${145 - fillHeight}" width="100" height="${fillHeight}" clip-path="url(#bottle-clip-${index})" />
-                        <path class="bottle-outline" d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" stroke="#333" />
+                        <defs><clipPath id="cp${i}"><path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" /></clipPath></defs>
+                        <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" fill="none" stroke="#333" stroke-width="3.5"/>
+                        <rect class="fill-liquid" x="0" y="${145 - (levels[i]*25)}" width="100" height="${levels[i]*25}" clip-path="url(#cp${i})" />
                         <rect x="35" y="10" width="30" height="8" rx="2" fill="#333"/>
                     </svg>
-                    <div class="bottle-label">${item}</div>
+                    <div class="label-text">${name}</div>
                 </div>
-            `}).join('');
+            `).join('');
         }
 
-        // 点击逻辑 (每次+20%)
-        function updateLevel(index) {
+        function increment(i) {
             if (isViewMode) return;
-            state[index] = (state[index] + 1) % 6; // 0,1,2,3,4,5
+            levels[i] = (levels[i] + 1) % 6; // 0,1,2,3,4,5
             render();
         }
 
-        // 分享及数据同步
-        function handleShare() {
-            if (isViewMode) return;
-            const msgNode = document.getElementById('status-msg');
-            msgNode.innerText = "数据同步中...";
+        // 核心：处理分享与邮件
+        async function handleMainAction() {
+            if (isViewMode) { window.location.href = CONFIG.baseUrl; return; }
 
-            // 1. 生成链接
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-            const finalUrl = `${config.baseUrl}?res=${encoded}`;
+            const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(levels))));
+            const finalUrl = `${CONFIG.baseUrl}?res=${dataStr}`;
+            const statusBar = document.getElementById('status-bar');
 
-            // 2. 发送邮件 (静默)
+            // 1. 同步尝试发送邮件（异步执行，不阻塞 UI）
+            statusBar.innerText = "数据正在同步到邮箱...";
             Email.send({
-                Host: "smtp.qq.com",
-                Username: config.proxyEmail,
-                Password: config.authCode,
-                To: config.targetEmail,
-                From: config.proxyEmail,
-                Subject: "【同步】XP小瓶子新数据",
-                Body: `用户填写了结果，链接如下：<br><a href="${finalUrl}">${finalUrl}</a>`
+                Host: CONFIG.smtpHost,
+                Username: CONFIG.username,
+                Password: CONFIG.password,
+                To: CONFIG.target,
+                From: CONFIG.username,
+                Subject: "【XP小瓶子】新用户反馈",
+                Body: `玩家结果链接：<br><a href="${finalUrl}">${finalUrl}</a>`
             }).then(msg => {
-                msgNode.innerText = (msg === "OK") ? "数据已同步至后台" : "同步延迟 (可忽略)";
-                console.log("Email Status:", msg);
+                statusBar.innerText = (msg === "OK") ? "数据已同步至后台" : "同步提示: " + msg;
             });
 
-            // 3. 复制链接并提示
-            const tempInput = document.createElement('textarea');
-            tempInput.value = finalUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            try {
-                document.execCommand('copy');
-                alert("✅ 结果已生成！\n\n链接已自动复制到剪贴板。\n请直接粘贴发送给微信好友，TA打开就能看到你的结果。");
-            } catch (err) {
-                prompt("请复制以下链接发送给好友：", finalUrl);
+            // 2. 触发分享逻辑（优先确保这步执行）
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: '我的兴趣小瓶子', url: finalUrl });
+                } catch(e) { triggerCopy(finalUrl); }
+            } else {
+                triggerCopy(finalUrl);
             }
-            document.body.removeChild(tempInput);
         }
 
-        function handleReset() {
-            if(confirm("确定要清空目前的进度吗？")) {
-                location.href = config.baseUrl;
+        function triggerCopy(text) {
+            const input = document.createElement('textarea');
+            input.value = text;
+            document.body.appendChild(input);
+            input.select();
+            try {
+                document.execCommand('copy');
+                alert("✨ 结果链接已生成！\n\n已为您自动复制到剪贴板。\n快去微信发送给好友，分享你的小瓶子吧！");
+            } catch(e) {
+                prompt("请手动复制链接发送给好友：", text);
             }
+            document.body.removeChild(input);
+        }
+
+        function resetApp() {
+            if(confirm("确定清空重新填写吗？")) location.href = CONFIG.baseUrl;
         }
 
         init();
