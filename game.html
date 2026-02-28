@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>正在填写 - 欲望清单</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>emailjs.init("k0Jq1yQ1_Y1PQF_lu");</script>
+    <style>
+        :root { --primary: #ff0055; --bg: #0f0f0f; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .header { margin: 20px 0; text-align: center; }
+        .header h1 { font-size: 20px; color: var(--primary); }
+        
+        #bottle-grid { 
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; 
+            padding: 20px; width: 85%; max-width: 400px; 
+            background: #1a1a1a; border-radius: 25px; 
+        }
+        
+        .bottle-item { display: flex; flex-direction: column; align-items: center; }
+        .bottle-svg { width: 60px; height: 85px; }
+        .bottle-fill { transition: height 0.3s ease; fill: var(--primary); filter: drop-shadow(0 0 5px var(--primary)); }
+        .label { margin-top: 8px; font-size: 13px; font-weight: bold; color: #ccc; text-align: center; }
+
+        .btn-group { margin: 30px 0; display: flex; flex-direction: column; gap: 10px; width: 80%; max-width: 280px; }
+        .btn { padding: 15px; border-radius: 30px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-main { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(255,0,85,0.4); }
+        .btn-back { background: #333; color: #bbb; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="title">欲望载入中...</h1>
+    </div>
+
+    <div id="bottle-grid"></div>
+
+    <div class="btn-group">
+        <button class="btn btn-main" onclick="handleShare()">保存我的XP清单</button>
+        <button class="btn btn-back" onclick="location.href='index.html'">返回主页</button>
+    </div>
+
+    <script>
+        const DATA = {
+            basic: { title: "口欲/亲吻清单", items: ["种草莓", "舔耳朵", "舔乳头", "指交/帮撸", "被口", "帮对方口", "口交", "深喉", "口爆", "吞精", "颜射", "舔阴", "舔足"] },
+            sm: { title: "轻度调教清单", items: ["捆绑", "蒙眼", "滴蜡", "鞭打", "项圈", "SP/打屁股", "羞辱", "放置", "强制感", "药物辅助"] },
+            outdoor: { title: "禁忌地点清单", items: ["私家车", "公园野外", "试衣间", "楼梯间", "阳台", "办公室", "浴室", "电影院", "酒店落地窗"] },
+            fetish: { title: "恋物/制服清单", items: ["连体丝袜", "过膝袜", "女仆装", "学生JK", "死库水", "旗袍诱惑", "西装革履", "蕾丝内衣", "高跟鞋", "眼镜娘"] },
+            roleplay: { title: "角色扮演清单", items: ["医生/护士", "老师/学生", "上司/下属", "电车痴汉", "绑匪/人质", "陌生人社交", "主人/奴隶"] },
+            hard: { title: "深度开发清单", items: ["拳交", "灌肠", "圣水", "群P", "换妻", "露体", "异物插入"] }
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const catKey = params.get('cat') || 'basic';
+        const config = DATA[catKey];
+        let state = new Array(config.items.length).fill(0);
+
+        function init() {
+            document.getElementById('title').innerText = config.title;
+            const res = params.get('res');
+            if (res) {
+                state = JSON.parse(decodeURIComponent(escape(atob(res))));
+                document.querySelectorAll('.btn-main').forEach(b => b.innerText = "我也要填");
+            }
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('bottle-grid');
+            grid.innerHTML = config.items.map((item, i) => `
+                <div class="bottle-item" onclick="tap(${i})">
+                    <svg class="bottle-svg" viewBox="0 0 100 150">
+                        <defs><clipPath id="cl${i}"><path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" /></clipPath></defs>
+                        <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" fill="none" stroke="#444" stroke-width="3"/>
+                        <rect class="bottle-fill" x="0" y="${145 - (state[i] * 25)}" width="100" height="${state[i] * 25}" clip-path="url(#cl${i})" />
+                    </svg>
+                    <div class="label">${item}</div>
+                </div>
+            `).join('');
+        }
+
+        function tap(i) {
+            if (params.get('res')) return;
+            state[i] = (state[i] + 1) % 6;
+            render();
+        }
+
+        function handleShare() {
+            if (params.get('res')) { location.href = `game.html?cat=${catKey}`; return; }
+            const resStr = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+            const url = `${window.location.origin}${window.location.pathname}?cat=${catKey}&res=${resStr}`;
+            
+            const el = document.createElement('textarea');
+            el.value = url;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert('🔞 欲望清单已加密生成！\n链接已复制，去发送给 Ta 吧。');
+        }
+
+        init();
+    </script>
+</body>
+</html>
