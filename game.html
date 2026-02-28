@@ -3,58 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>正在填写 - 欲望清单</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script>emailjs.init("k0Jq1yQ1_Y1PQF_lu");</script>
+    <title>小瓶子 - 欲望清单</title>
     <style>
-        :root { --primary: #ff0055; --bg: #0f0f0f; }
+        :root { --primary: #ff0055; --bg: #0a0a0a; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        
-        .header { margin: 20px 0; text-align: center; }
-        .header h1 { font-size: 20px; color: var(--primary); }
-        
+        .header { margin: 25px 0; text-align: center; padding: 0 20px; }
+        .header h1 { font-size: 20px; color: var(--primary); text-shadow: 0 0 10px rgba(255,0,85,0.3); }
         #bottle-grid { 
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; 
-            padding: 20px; width: 85%; max-width: 400px; 
-            background: #1a1a1a; border-radius: 25px; 
+            padding: 20px; width: 88%; max-width: 450px; 
+            background: #161616; border-radius: 25px; border: 1px solid #222;
         }
-        
         .bottle-item { display: flex; flex-direction: column; align-items: center; }
-        .bottle-svg { width: 60px; height: 85px; }
-        .bottle-fill { transition: height 0.3s ease; fill: var(--primary); filter: drop-shadow(0 0 5px var(--primary)); }
-        .label { margin-top: 8px; font-size: 13px; font-weight: bold; color: #ccc; text-align: center; }
-
-        .btn-group { margin: 30px 0; display: flex; flex-direction: column; gap: 10px; width: 80%; max-width: 280px; }
-        .btn { padding: 15px; border-radius: 30px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; }
-        .btn-main { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(255,0,85,0.4); }
-        .btn-back { background: #333; color: #bbb; }
+        .bottle-svg { width: 55px; height: 80px; }
+        .bottle-fill { transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1); fill: var(--primary); filter: drop-shadow(0 0 3px var(--primary)); }
+        .label { margin-top: 10px; font-size: 12px; font-weight: 500; color: #aaa; text-align: center; min-height: 34px; width: 90%; }
+        .btn-group { margin: 30px 0; display: flex; flex-direction: column; gap: 12px; width: 80%; max-width: 280px; }
+        .btn { padding: 16px; border-radius: 35px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-main { background: var(--primary); color: white; box-shadow: 0 5px 20px rgba(255,0,85,0.4); }
+        .btn-back { background: #222; color: #777; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1 id="title">欲望载入中...</h1>
+        <h1 id="title">分类载入中...</h1>
     </div>
 
     <div id="bottle-grid"></div>
 
     <div class="btn-group">
-        <button class="btn btn-main" onclick="handleShare()">保存我的XP清单</button>
-        <button class="btn btn-back" onclick="location.href='index.html'">返回主页</button>
+        <button class="btn btn-main" id="main-btn" onclick="handleShare()">保存结果并复制链接</button>
+        <button class="btn btn-back" onclick="location.href='index.html'">返回超市主页</button>
     </div>
 
     <script>
         const DATA = {
-            basic: { title: "口欲/亲吻清单", items: ["种草莓", "舔耳朵", "舔乳头", "指交/帮撸", "被口", "帮对方口", "口交", "深喉", "口爆", "吞精", "颜射", "舔阴", "舔足"] },
-            sm: { title: "轻度调教清单", items: ["捆绑", "蒙眼", "滴蜡", "鞭打", "项圈", "SP/打屁股", "羞辱", "放置", "强制感", "药物辅助"] },
-            outdoor: { title: "禁忌地点清单", items: ["私家车", "公园野外", "试衣间", "楼梯间", "阳台", "办公室", "浴室", "电影院", "酒店落地窗"] },
-            fetish: { title: "恋物/制服清单", items: ["连体丝袜", "过膝袜", "女仆装", "学生JK", "死库水", "旗袍诱惑", "西装革履", "蕾丝内衣", "高跟鞋", "眼镜娘"] },
-            roleplay: { title: "角色扮演清单", items: ["医生/护士", "老师/学生", "上司/下属", "电车痴汉", "绑匪/人质", "陌生人社交", "主人/奴隶"] },
-            hard: { title: "深度开发清单", items: ["拳交", "灌肠", "圣水", "群P", "换妻", "露体", "异物插入"] }
+            c1: { title: "1. 前戏/口部/亲吻", items: ["舌吻", "种草莓", "被舔耳朵", "被舔乳头", "指交/帮撸", "被口", "帮对方口", "口交", "深喉", "口爆", "吞精", "颜射", "舔阴/舔肛", "舔足/舔脚"] },
+            c2: { title: "2. 体位/性交相关", items: ["女上位", "传教士(正面)", "后入式", "肛交", "乳交", "69式", "无套", "内射/中出", "潮吹", "正常性爱"] },
+            c3: { title: "3. 高潮/控制/激烈", items: ["强迫/强制高潮", "边缘控制", "高潮禁止", "潮吹失禁", "性窒息", "自慰展示", "跳蛋/器具", "折磨/虐待"] },
+            c4: { title: "4. 羞辱/言语/心理", items: ["言语/语言羞辱", "人格侮辱", "下流话", "羞辱耳光", "思维/精神控制", "催眠", "胁迫", "视奸/痴汉"] },
+            c5: { title: "5. 捆绑/束缚/道具", items: ["绳缚/吊缚", "贞操带/项圈", "口球/眼罩", "胶衣", "乳夹/阴夹", "肛塞", "穿刺(乳/阴)", "滴蜡/电击", "针刺皮肤", "鞭打/SP", "踩踏/践踏", "乳头虐待"] },
+            c6: { title: "6. 宠物/动物化/饲养", items: ["爬行", "长期/短期圈养", "K9犬化/犬奴", "遛狗式", "骑乘", "穿戴兽尾", "喂食"] },
+            c7: { title: "7. 角色扮演/场景", items: ["角色扮演", "制服诱惑", "情趣内衣", "人偶装扮", "家具/艺术品化", "正常性爱(对比)"] },
+            c8: { title: "8. 多人/群交/组合", items: ["3P/多P/群交", "两女一男", "两男一女", "多奴调教", "夫妻主调教", "多主调教", "公调"] },
+            c9: { title: "9. 暴露/野外/公共", items: ["露出/暴露", "野外", "公共场合玩弄", "公开场合失禁", "露阴", "野外流放/奴役", "暴露性交", "电话暴露"] },
+            c10: { title: "10. 极端/强制/幻想", items: ["强奸/轮奸", "乱伦", "性瘾", "媚药", "囚禁/牢笼", "灌肠", "圣水/黄金", "吃经血", "剃毛", "双阳具插入", "感官剥夺", "长时间口交", "舔精/舔阴"] },
+            c11: { title: "11. 场所/场景大全", items: ["浴室/厨房", "卧室/客厅", "车里", "酒店/办公室", "教室/厕所", "沙发/餐桌", "天台/野外", "游泳池/瑜伽垫", "落地窗前", "私人影院", "摩天轮/秋千", "楼道/网吧/画室"] },
+            c12: { title: "12. 小众/其他玩法", items: ["食物玩法/插入", "巧克力/奶油", "机器人/仿生人", "睡眠玩法", "镜拷", "网络控制", "公交车痴汉", "作为烟灰缸/奴仆"] }
         };
 
         const params = new URLSearchParams(window.location.search);
-        const catKey = params.get('cat') || 'basic';
+        const catKey = params.get('cat') || 'c1';
         const config = DATA[catKey];
         let state = new Array(config.items.length).fill(0);
 
@@ -62,8 +62,10 @@
             document.getElementById('title').innerText = config.title;
             const res = params.get('res');
             if (res) {
-                state = JSON.parse(decodeURIComponent(escape(atob(res))));
-                document.querySelectorAll('.btn-main').forEach(b => b.innerText = "我也要填");
+                try {
+                    state = JSON.parse(decodeURIComponent(escape(atob(res))));
+                    document.getElementById('main-btn').innerText = "我也要填这份清单";
+                } catch(e) {}
             }
             render();
         }
@@ -74,8 +76,9 @@
                 <div class="bottle-item" onclick="tap(${i})">
                     <svg class="bottle-svg" viewBox="0 0 100 150">
                         <defs><clipPath id="cl${i}"><path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" /></clipPath></defs>
-                        <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" fill="none" stroke="#444" stroke-width="3"/>
+                        <path d="M30,20 L70,20 L75,40 L85,130 Q85,145 70,145 L30,145 Q15,145 15,130 L25,40 Z" fill="none" stroke="#444" stroke-width="4"/>
                         <rect class="bottle-fill" x="0" y="${145 - (state[i] * 25)}" width="100" height="${state[i] * 25}" clip-path="url(#cl${i})" />
+                        <rect x="32" y="10" width="36" height="12" rx="3" fill="#333"/>
                     </svg>
                     <div class="label">${item}</div>
                 </div>
@@ -95,11 +98,10 @@
             
             const el = document.createElement('textarea');
             el.value = url;
-            document.body.appendChild(el);
-            el.select();
+            document.body.appendChild(el); el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            alert('🔞 欲望清单已加密生成！\n链接已复制，去发送给 Ta 吧。');
+            alert('✅ 结果已生成！链接已复制到剪贴板。');
         }
 
         init();
